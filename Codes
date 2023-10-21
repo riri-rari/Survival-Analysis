@@ -23,7 +23,7 @@ table(data$age)
 
 #label all the categories and make a hemoglobin and age group
 data %<>% mutate(clinstg = factor(clinstg, levels = c(1, 2), labels = c("Stage I", "Stage II")),
-               chemo = factor(chemo, levels = c(0, 1), labels = c("Chemotherapy", "No chemotherapy")),
+               chemo = factor(chemo, levels = c(0, 1), labels = c("No chemotherapy", "Chemotherapy")),
                dfstat = factor(dfstat, levels = c(0, 1), labels = c("No event", "Relapse/metastasis/death")),
                hgb_group = ifelse(hgb < 130, "Low",
                             ifelse(hgb < 170, "Normal", "High")),
@@ -129,4 +129,74 @@ data.frame(test_hgb,stderror_hgb,z_hgb,pval_hgb)
 survdiff(Surv(dftime, dfstat) ~ chemo + strata(age_group), data=data1)
 survdiff(Surv(dftime, dfstat) ~ chemo + strata(hgb_group), data=data1)
 survdiff(Surv(dftime, dfstat) ~ chemo + strata(clinstg), data=data1)
+
+## Additional plots
+#note: fit_clinstg = df_clinstg, fit_chemo = df_time, fit_hemo = df_hgb, fit_age = df_age
+
+theme <- theme(legend.text = element_text(size = 11),
+            axis.line = element_line(colour = "black"),
+           panel.grid.major = element_line(colour = "grey90"),
+           panel.grid.minor = element_line(colour = "grey90"),
+           panel.border = element_blank(),
+           panel.background = element_blank()) 
+
+
+clinstg <- ggsurvplot(fit_clinstg, risk.table = TRUE, censor.shape = "*",
+                   alpha = c(0.6), 
+                   legend.labs = c("Clinical Stage I", "Clinical Stage II"),
+                   risk.table.col = "strata",
+                   legend.title = "",
+                   palette = "Dark2",
+                   risk.table.y.text = FALSE,
+                   ylab = "Survival probability",
+                   xlab = "TIme (Years)",
+                   conf.int = T, 
+                   ggtheme = theme, 
+                   title = 'Clinical Stage', 
+                   font.main = c(11, 'bold'))
+
+chemo <- ggsurvplot(fit_chemo, risk.table = TRUE, censor.shape = "*",
+                   alpha = c(0.6),
+                   legend.labs = c("No Chemotherapy", "Chemotherapy"),
+                   risk.table.col = "strata",
+                   legend.title = "",
+                   palette = "Dark2",
+                   risk.table.y.text = FALSE,
+                   ylab = "Survival probability",
+                   xlab = "TIme (Years)",
+                   conf.int = T, 
+                   ggtheme = theme, 
+                   title = 'Chemotherapy', 
+                   font.main = c(11, 'bold'))
+
+
+hgb <-  ggsurvplot(fit_hemo, risk.table = TRUE, censor.shape = "*",
+                   alpha = c(0.6),
+                   legend.labs = c("High Hgb ", "Low Hgb", "Normal Hgb"),
+                   risk.table.col = "strata",
+                   legend.title = "",
+                   palette = "Dark2",
+                   risk.table.y.text = FALSE,
+                   ylab = "Survival probability",
+                   xlab = "Time (Years)",
+                   conf.int = T, 
+                   ggtheme = theme, 
+                   title = 'Haemoglobin concentration (g/l)',
+                   font.main = c(11, 'bold')) 
+
+age <- ggsurvplot(fit_age, risk.table = TRUE, censor.shape = "*",
+                   alpha = c(0.6),
+                   legend.labs = c("<40 yo", "40-49 yo", "60+ yo"),
+                   risk.table.col = "strata",
+                   legend.title = "",
+                   palette = "Dark2",
+                   risk.table.y.text = FALSE,
+                   ylab = "Survival probability",
+                   xlab = "Time (Years)",
+                   conf.int = T,
+                   ggtheme = theme,
+                   title = 'Age groups', 
+                   font.main = c(11, 'bold')) 
+
+surv_plot <- arrange_ggsurvplots(list(chemo, clinstg, hgb, age), print = T, ncol = 2, nrow = 2, risk.table.height = 0.37)
 
